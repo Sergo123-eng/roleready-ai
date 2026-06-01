@@ -163,6 +163,68 @@
     </main>
 
     <div id="toast" role="status" aria-live="polite"></div>
-    <script src="app.js?v=20260601"></script>
+    <script src="app.js?v=20260602"></script>
+    <script>
+      (function () {
+        const $ = (id) => document.getElementById(id);
+        const now = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+        function show(message) {
+          const saveStatus = $("saveStatus");
+          const toast = $("toast");
+          if (saveStatus) saveStatus.textContent = `${message} at ${now()}`;
+          if (toast) {
+            toast.textContent = message;
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 1600);
+          }
+        }
+
+        function fallbackAnalyze() {
+          const role = $("roleInput")?.value.trim() || "AI Product Intern";
+          const profile = $("profileInput")?.value.toLowerCase() || "";
+          const job = $("jobInput")?.value.toLowerCase() || "";
+          const text = `${profile} ${job}`;
+          const signals = [
+            ["Data", ["python", "sql", "dashboard", "metrics", "analytics"]],
+            ["AI", ["ai", "llm", "prompt", "model"]],
+            ["Frontend", ["react", "javascript", "prototype", "frontend"]],
+            ["Product", ["user", "research", "design", "tradeoff"]],
+            ["Comms", ["present", "communicat", "document", "team"]],
+          ];
+          const scored = signals.map(([name, terms]) => [name, terms.filter((term) => text.includes(term)).length]);
+          const best = scored.sort((a, b) => b[1] - a[1])[0]?.[0] || "Data";
+          const score = Math.min(92, 48 + scored.reduce((sum, item) => sum + item[1], 0) * 3);
+
+          $("scoreText").textContent = `${score}%`;
+          $("bestSignal").textContent = best;
+          $("topGap").textContent = text.includes("api") ? "User Research" : "APIs";
+          $("effortText").textContent = "Demo plus case study";
+          $("projectBrief").innerHTML = `
+            <div class="brief-block"><span>Title</span><p>${role} Signal Studio</p></div>
+            <div class="brief-block"><span>Problem</span><p>Students need a clearer way to turn experience into proof for a specific job post.</p></div>
+            <div class="brief-block"><span>Solution</span><p>This app maps strengths, gaps, and a project plan recruiters can understand quickly.</p></div>
+          `;
+          $("pitchText").textContent = `I built RoleReady AI to help students turn scattered experience into role-specific proof for a ${role} role.`;
+          show("Analyzed");
+        }
+
+        function fallbackSample() {
+          $("roleInput").value = "AI Product Intern";
+          $("profileInput").value = "Computer science student with projects in Python, JavaScript, React, SQL, prompt testing, and dashboard design. Built a campus dining analytics prototype, explored LLM evaluation in a class notebook, led a student club website redesign, and presented research findings to nontechnical audiences.";
+          $("jobInput").value = "We are looking for an intern who can prototype AI features, analyze product usage data, collaborate with designers, build lightweight frontend demos, document tradeoffs, and communicate findings clearly. Experience with Python, SQL, prompt engineering, APIs, user research, and metrics is preferred.";
+          fallbackAnalyze();
+          show("Sample loaded");
+        }
+
+        $("generatePlan")?.addEventListener("click", () => setTimeout(fallbackAnalyze, 50));
+        $("loadSample")?.addEventListener("click", () => setTimeout(fallbackSample, 50));
+        $("resetApp")?.addEventListener("click", () => setTimeout(fallbackSample, 50));
+
+        setTimeout(() => {
+          if ($("scoreText")?.textContent.trim() === "0%") fallbackAnalyze();
+        }, 300);
+      })();
+    </script>
   </body>
 </html>
