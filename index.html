@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RoleReady AI</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">R</span>
+        <div>
+          <h1>RoleReady AI</h1>
+          <p>Student career project studio</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-button" id="loadSample" type="button" title="Load sample">
+          <span aria-hidden="true">+</span>
+          <span>Sample</span>
+        </button>
+        <button class="icon-button ghost" id="exportPlan" type="button" title="Export plan">
+          <span aria-hidden="true">v</span>
+          <span>Export</span>
+        </button>
+        <button class="icon-button ghost" id="resetApp" type="button" title="Reset">
+          <span aria-hidden="true">x</span>
+          <span>Reset</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="app-shell">
+      <section class="input-panel" aria-label="Profile inputs">
+        <div class="panel-heading">
+          <h2>Profile</h2>
+          <span id="saveStatus">Saved locally</span>
+        </div>
+
+        <label>
+          Target role
+          <input id="roleInput" type="text" value="AI Product Intern" autocomplete="off" />
+        </label>
+
+        <label>
+          Student profile
+          <textarea id="profileInput" rows="9">Computer science student with projects in Python, JavaScript, React, SQL, prompt testing, and dashboard design. Built a campus dining analytics prototype, explored LLM evaluation in a class notebook, led a student club website redesign, and presented research findings to nontechnical audiences.</textarea>
+        </label>
+
+        <label>
+          Job description
+          <textarea id="jobInput" rows="11">We are looking for an intern who can prototype AI features, analyze product usage data, collaborate with designers, build lightweight frontend demos, document tradeoffs, and communicate findings clearly. Experience with Python, SQL, prompt engineering, APIs, user research, and metrics is preferred.</textarea>
+        </label>
+
+        <div class="field-grid">
+          <label>
+            Timeframe
+            <select id="timeInput">
+              <option>7 days</option>
+              <option selected>14 days</option>
+              <option>30 days</option>
+            </select>
+          </label>
+          <label>
+            Build style
+            <select id="styleInput">
+              <option selected>Portfolio ready</option>
+              <option>Hackathon MVP</option>
+              <option>Research demo</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="stretchToggle" type="checkbox" checked />
+            <span></span>
+            Include stretch ideas
+          </label>
+          <label class="switch">
+            <input id="entryToggle" type="checkbox" checked />
+            <span></span>
+            Entry-level framing
+          </label>
+        </div>
+
+        <button class="primary-action" id="generatePlan" type="button">Analyze fit</button>
+      </section>
+
+      <section class="workspace" aria-label="Generated career plan">
+        <section class="score-band">
+          <article>
+            <span>Match score</span>
+            <strong id="scoreText">0%</strong>
+          </article>
+          <article>
+            <span>Best signal</span>
+            <strong id="bestSignal">-</strong>
+          </article>
+          <article>
+            <span>Gap to close</span>
+            <strong id="topGap">-</strong>
+          </article>
+          <article>
+            <span>Project effort</span>
+            <strong id="effortText">-</strong>
+          </article>
+        </section>
+
+        <section class="analysis-layout">
+          <div class="map-panel">
+            <div class="section-title">
+              <h2>Signal Map</h2>
+              <button class="small-copy" data-copy="signal" type="button">Copy</button>
+            </div>
+            <canvas id="skillCanvas" width="640" height="420" aria-label="Skill match chart"></canvas>
+          </div>
+
+          <div class="brief-panel">
+            <div class="section-title">
+              <h2>Project Brief</h2>
+              <button class="small-copy" data-copy="brief" type="button">Copy</button>
+            </div>
+            <div id="projectBrief" class="brief-content"></div>
+          </div>
+        </section>
+
+        <section class="output-grid">
+          <article class="output-card">
+            <div class="section-title">
+              <h2>Skill Gaps</h2>
+              <button class="small-copy" data-copy="gaps" type="button">Copy</button>
+            </div>
+            <div id="skillGaps" class="stack"></div>
+          </article>
+
+          <article class="output-card">
+            <div class="section-title">
+              <h2>Sprint Plan</h2>
+              <button class="small-copy" data-copy="sprint" type="button">Copy</button>
+            </div>
+            <ol id="sprintPlan" class="timeline"></ol>
+          </article>
+
+          <article class="output-card">
+            <div class="section-title">
+              <h2>Resume Bullets</h2>
+              <button class="small-copy" data-copy="resume" type="button">Copy</button>
+            </div>
+            <ul id="resumeBullets" class="bullet-list"></ul>
+          </article>
+
+          <article class="output-card">
+            <div class="section-title">
+              <h2>Handshake Pitch</h2>
+              <button class="small-copy" data-copy="pitch" type="button">Copy</button>
+            </div>
+            <p id="pitchText" class="pitch"></p>
+          </article>
+        </section>
+      </section>
+    </main>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
