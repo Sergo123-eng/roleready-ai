@@ -75,6 +75,12 @@ const els = {
   toast: document.getElementById("toast"),
 };
 
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
 function normalize(value) {
   return value.toLowerCase().replace(/[^a-z0-9+#.\s-]/g, " ");
 }
@@ -228,7 +234,7 @@ function render(plan) {
   ].forEach(([label, text]) => {
     const block = document.createElement("div");
     block.className = "brief-block";
-    block.innerHTML = `<span>${label}</span><p>${text}</p>`;
+    block.innerHTML = `<span>${escapeHtml(label)}</span><p>${escapeHtml(text)}</p>`;
     els.brief.appendChild(block);
   });
 
@@ -251,9 +257,9 @@ function render(plan) {
     const row = document.createElement("div");
     row.className = "gap-row";
     row.innerHTML = `
-      <strong>${item.label}</strong>
-      <div class="bar" aria-label="${item.label} ${item.score}%">
-        <span style="width:${item.score}%; background:${item.color}"></span>
+      <strong>${escapeHtml(item.label)}</strong>
+      <div class="bar" aria-label="${escapeHtml(item.label)} ${item.score}%">
+        <span style="width:${item.score}%; background:${escapeHtml(item.color)}"></span>
       </div>
     `;
     els.gaps.appendChild(row);
