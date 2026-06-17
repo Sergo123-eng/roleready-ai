@@ -75,6 +75,36 @@ const els = {
   toast: document.getElementById("toast"),
 };
 
+/* ── Shared DOM utilities ─────────────────────────────────────────────── */
+
+function createEl(tag, className, html) {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  if (html !== undefined) el.innerHTML = html;
+  return el;
+}
+
+function renderList(container, items, tag) {
+  container.innerHTML = "";
+  items.forEach((text) => {
+    const el = createEl(tag);
+    el.textContent = text;
+    container.appendChild(el);
+  });
+}
+
+function renderTags(container, items, extraClass) {
+  const row = createEl("div", "tag-row");
+  items.forEach((text) => {
+    const tag = createEl("span", extraClass ? `tag ${extraClass}` : "tag");
+    tag.textContent = text;
+    row.appendChild(tag);
+  });
+  container.appendChild(row);
+}
+
+/* ── Text utilities ───────────────────────────────────────────────────── */
+
 function normalize(value) {
   return value.toLowerCase().replace(/[^a-z0-9+#.\s-]/g, " ");
 }
@@ -226,63 +256,30 @@ function render(plan) {
     ["Solution", plan.brief.solution],
     ["Metric", plan.brief.metric],
   ].forEach(([label, text]) => {
-    const block = document.createElement("div");
-    block.className = "brief-block";
-    block.innerHTML = `<span>${label}</span><p>${text}</p>`;
-    els.brief.appendChild(block);
+    els.brief.appendChild(createEl("div", "brief-block", `<span>${label}</span><p>${text}</p>`));
   });
 
-  const featureBlock = document.createElement("div");
-  featureBlock.className = "brief-block";
-  featureBlock.innerHTML = "<span>Features</span>";
-  const tags = document.createElement("div");
-  tags.className = "tag-row";
-  plan.brief.features.forEach((feature) => {
-    const tag = document.createElement("span");
-    tag.className = "tag";
-    tag.textContent = feature;
-    tags.appendChild(tag);
-  });
-  featureBlock.appendChild(tags);
+  const featureBlock = createEl("div", "brief-block", "<span>Features</span>");
+  renderTags(featureBlock, plan.brief.features);
   els.brief.appendChild(featureBlock);
 
   els.gaps.innerHTML = "";
   plan.categories.forEach((item) => {
-    const row = document.createElement("div");
-    row.className = "gap-row";
-    row.innerHTML = `
-      <strong>${item.label}</strong>
-      <div class="bar" aria-label="${item.label} ${item.score}%">
-        <span style="width:${item.score}%; background:${item.color}"></span>
-      </div>
-    `;
-    els.gaps.appendChild(row);
+    els.gaps.appendChild(
+      createEl("div", "gap-row", `
+        <strong>${item.label}</strong>
+        <div class="bar" aria-label="${item.label} ${item.score}%">
+          <span style="width:${item.score}%; background:${item.color}"></span>
+        </div>
+      `),
+    );
   });
 
-  const gapTags = document.createElement("div");
-  gapTags.className = "tag-row";
   const gapTagValues = plan.missing.length ? plan.missing : ["Add more role-specific evidence"];
-  gapTagValues.forEach((gap) => {
-    const tag = document.createElement("span");
-    tag.className = "tag gap";
-    tag.textContent = gap;
-    gapTags.appendChild(tag);
-  });
-  els.gaps.appendChild(gapTags);
+  renderTags(els.gaps, gapTagValues, "gap");
 
-  els.sprint.innerHTML = "";
-  plan.sprint.forEach((item) => {
-    const li = document.createElement("li");
-    li.textContent = item;
-    els.sprint.appendChild(li);
-  });
-
-  els.resume.innerHTML = "";
-  plan.resumeBullets.forEach((item) => {
-    const li = document.createElement("li");
-    li.textContent = item;
-    els.resume.appendChild(li);
-  });
+  renderList(els.sprint, plan.sprint, "li");
+  renderList(els.resume, plan.resumeBullets, "li");
 
   els.pitch.textContent = plan.pitch;
   drawSkillMap(plan.categories);
