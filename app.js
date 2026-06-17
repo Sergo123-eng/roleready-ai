@@ -95,6 +95,12 @@ function analyze() {
   const role = els.role.value.trim() || "Target Role";
   const profile = els.profile.value.trim();
   const job = els.job.value.trim();
+
+  if (!profile && !job) {
+    toast("Enter a student profile or job description to analyze");
+    return;
+  }
+
   const joinedJob = `${role} ${job}`;
   const joinedProfile = profile;
 
@@ -139,7 +145,14 @@ function analyze() {
   });
 
   state.lastPlan = plan;
-  render(plan);
+
+  try {
+    render(plan);
+  } catch (error) {
+    console.error("Render failed:", error);
+    toast("Something went wrong while rendering the plan");
+  }
+
   persist();
 }
 
@@ -291,6 +304,10 @@ function render(plan) {
 function drawSkillMap(items) {
   const canvas = els.canvas;
   const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    console.error("Canvas 2D context is not available");
+    return;
+  }
   const width = canvas.width;
   const height = canvas.height;
   ctx.clearRect(0, 0, width, height);
@@ -387,32 +404,45 @@ function planText(section) {
 
 async function copySection(section) {
   const text = planText(section);
-  if (!text) return;
+  if (!text) {
+    toast("Nothing to copy yet — run an analysis first");
+    return;
+  }
   try {
     await navigator.clipboard.writeText(text);
     toast("Copied");
-  } catch {
-    toast("Copy blocked by browser");
+  } catch (error) {
+    console.error("Clipboard write failed:", error);
+    toast("Copy failed — your browser may have blocked clipboard access");
   }
 }
 
 function exportPlan() {
   if (!state.lastPlan) analyze();
-  const data = {
-    generatedAt: new Date().toISOString(),
-    inputs: readInputs(),
-    plan: state.lastPlan,
-  };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "roleready-plan.json";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-  toast("Exported");
+  if (!state.lastPlan) {
+    toast("No plan to export — run an analysis first");
+    return;
+  }
+  try {
+    const data = {
+      generatedAt: new Date().toISOString(),
+      inputs: readInputs(),
+      plan: state.lastPlan,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "roleready-plan.json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast("Exported");
+  } catch (error) {
+    console.error("Export failed:", error);
+    toast("Export failed — could not generate the file");
+  }
 }
 
 function readInputs() {
@@ -438,17 +468,32 @@ function writeInputs(data) {
 }
 
 function persist() {
-  localStorage.setItem("roleready-ai", JSON.stringify(readInputs()));
-  els.saveStatus.textContent = "Saved locally";
+  try {
+    localStorage.setItem("roleready-ai", JSON.stringify(readInputs()));
+    els.saveStatus.textContent = "Saved locally";
+  } catch (error) {
+    console.error("Failed to save to localStorage:", error);
+    els.saveStatus.textContent = "Save failed";
+  }
 }
 
 function restore() {
-  const raw = localStorage.getItem("roleready-ai");
+  let raw;
+  try {
+    raw = localStorage.getItem("roleready-ai");
+  } catch (error) {
+    console.error("Failed to read from localStorage:", error);
+    return false;
+  }
   if (!raw) return false;
   try {
     writeInputs(JSON.parse(raw));
     return true;
-  } catch {
+  } catch (error) {
+    console.error("Saved data is corrupted and was ignored:", error);
+    try {
+      localStorage.removeItem("roleready-ai");
+    } catch (_) { /* best-effort cleanup */ }
     return false;
   }
 }
@@ -460,15 +505,28 @@ function toast(message) {
   toast.timer = setTimeout(() => els.toast.classList.remove("show"), 1800);
 }
 
-document.getElementById("generatePlan").addEventListener("click", analyze);
-document.getElementById("loadSample").addEventListener("click", () => {
+function safeAddListener(id, event, handler) {
+  const element = document.getElementById(id);
+  if (!element) {
+    console.error(`Missing DOM element: #${id}`);
+    return;
+  }
+  element.addEventListener(event, handler);
+}
+
+safeAddListener("generatePlan", "click", analyze);
+safeAddListener("loadSample", "click", () => {
   writeInputs(sample);
   analyze();
   toast("Sample loaded");
 });
-document.getElementById("exportPlan").addEventListener("click", exportPlan);
-document.getElementById("resetApp").addEventListener("click", () => {
-  localStorage.removeItem("roleready-ai");
+safeAddListener("exportPlan", "click", exportPlan);
+safeAddListener("resetApp", "click", () => {
+  try {
+    localStorage.removeItem("roleready-ai");
+  } catch (error) {
+    console.error("Failed to clear saved data:", error);
+  }
   writeInputs(sample);
   analyze();
   toast("Reset");
@@ -479,6 +537,7 @@ document.querySelectorAll(".small-copy").forEach((button) => {
 });
 
 [els.role, els.profile, els.job, els.time, els.style, els.stretch, els.entry].forEach((input) => {
+  if (!input) return;
   input.addEventListener("input", () => {
     els.saveStatus.textContent = "Unsaved changes";
   });
