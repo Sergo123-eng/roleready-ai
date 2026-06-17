@@ -1,0 +1,14 @@
+{
+  "name": "roleready-ai",
+  "version": "1.0.0",
+  "description": "Browser-based student career project studio",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}
